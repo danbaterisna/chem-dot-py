@@ -1,16 +1,25 @@
-import argparse
+import argparse, collections
 import moles, periodic_table
 
 def moleHandler(args):
-    if args.grams is None and args.moles is None:
-        # find molar mass
-        print(f"{moles.molarMass(args.COMPOUND)} g/mol")
-    elif args.grams is None:
-        # convert m to g
-        print(f"{args.moles * moles.molarMass(args.COMPOUND):.{args.precision}f} g")
+    mmass = moles.molarMass(args.COMPOUND)
+    if args.conv is None:
+        print(f"{mmass} g/mol")
     else:
-        # convert m to g
-        print(f"{args.grams / moles.molarMass(args.COMPOUND):.{args.precision}f} mol")
+        # convert from the unit
+        fmoles = None
+        if args.qfrom == "grams":
+            fmoles = args.quantity / mmass
+        elif args.qfrom == "moles":
+            fmoles = args.quantity
+        else:
+            fmoles = args.quantity / moles.avogadro
+        if args.qto == "grams":
+            print(f"{fmoles * mmass:.{args.precision}g} g")
+        elif args.qto == "moles":
+            print(f"{fmoles:.{args.precision}g} mol")
+        elif args.qto == "items":
+            print(f"{fmoles * moles.avogadro:.{args.precision}g} items")
 
 def ptableHandler(args):
     result = None
@@ -32,15 +41,35 @@ subparsers.dest = "MAIN_COMMAND"
 
 mole_parser = subparsers.add_parser("mole", description = """Utilities related to molar conversions.
 
-Given the -g option, it finds the number of moles in GRAMS grams of the compound.
-Given the -m option, it finds the number of grams in MOLES moles of the compound.
-Given neither, it finds the molar mass of the compound.""")
+    Given the --conv option, performs the specified conversion.
+    The format of the arguments are --conv [FROM] [TO] [GIVEN_FROM]
+    [FROM] and [TO] are one of {grams, moles, items}. {g, m, i} are acceptable shorthands.
 
-mole_group = mole_parser.add_mutually_exclusive_group()
-mole_group.add_argument("-g", "--grams", type=float, help="amount of COMPOUND in grams")
-mole_group.add_argument("-m", "--moles", type=float, help="amount of COMPOUNT in moles")
-mole_parser.add_argument("-p", "--precision", type=int, help="Digits to round off the answer to.", default = 6)
+    Without the --conv option, returns the molar mass of the compound.""", \
+    formatter_class = argparse.RawTextHelpFormatter)
+
+class MoleConvValidator(argparse.Action):
+    def __call__(self, parser, args, values, option_string=None):
+        shortcuts = {'g' : "grams", 'm' : "moles", 'i' : "items"}
+        cFrom = shortcuts.get(values[0], values[0])
+        cTo = shortcuts.get(values[1], values[1])
+        if cFrom not in shortcuts.values():
+            raise argparse.ArgumentTypeError(f"{cFrom} not an accepted quantity")
+        elif cTo not in shortcuts.values():
+            raise argparse.ArgumentTypeError(f"{cTo} not an accepted quantity")
+        try:
+            quantity = float(values[2])
+        except ValueError:
+            raise argparse.ArgumentTypeError(f"{values[2]} not a valid float value")
+        setattr(args, "qfrom", cFrom)
+        setattr(args, "qto", cTo)
+        setattr(args, "quantity", quantity)
+        setattr(args, "conv", True)
+
+mole_parser.add_argument("-c", "--conv", nargs=3, action=MoleConvValidator, \
+                         help="Converts a given quantity.")
 mole_parser.add_argument("COMPOUND", type=str, help="The compound to convert.")
+mole_parser.add_argument("-p", "--precision", type=int, help="Significant figures in the output.", default=20)
 mole_parser.set_defaults(func=moleHandler);
 
 ptable_parser = subparsers.add_parser("ptable", description = """Utility for periodic table-based lookups.
@@ -56,4 +85,5 @@ ptable_parser.set_defaults(func=ptableHandler)
 
 args = parser.parse_args()
 args.func(args)
+
 

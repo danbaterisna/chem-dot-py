@@ -1,6 +1,8 @@
 import os
 import periodic_table, formula
 
+avogadro = 6.02214076e23
+
 # Takes in a chemical formula in standard input.
 # Prints the molar mass (accurate to 2 dps) in standard output.
 
