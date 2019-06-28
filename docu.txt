@@ -1,0 +1,21 @@
+chem.py is a suite of tools designed to make chem hw less tedious.
+
+to use, enter
+
+python chem.py [command]
+in the terminal.
+
+(Note that chem.py requires Python3. If the command to invoke the updated version is different, 
+e.g. python3, then use it instead of `python`, e.g. python3 chem.py [command]).
+
+The possible formats of command are as follows:
+
+mole
+
+A collection of commands related to molar masses.
+
+python3 chem.py mole [-g | -m] COMPOUND
+	Handles molar masses.
+
+python3 chem.py ptable [-a | -s | -n]
+	
