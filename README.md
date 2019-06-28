@@ -14,6 +14,6 @@ As always, there's the Cool Kid option of cloning this git repo.
 python chem.py ... 
 ```
 
-chem.py depends on [Python 3.6](https://www.python.org/downloads/).
+chem.py depends on [Python](https://www.python.org/downloads/) 3.6 and above.
 
 Note that the command to invoke Python may be different (e.g. `python3`), so adjust accordingly.
