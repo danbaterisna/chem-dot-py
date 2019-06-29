@@ -1,5 +1,13 @@
 import argparse, collections
-import moles, periodic_table
+import moles, periodic_table, compound
+
+_precision_parser = argparse.ArgumentParser(add_help = False)
+_precision_parser.add_argument("-p", "--precision", type=int, default=6, help="Number of significant figures of the answer.")
+
+parser = argparse.ArgumentParser(description = "A suite of chemistry-related utilities.")
+subparsers = parser.add_subparsers(help="which computation to perform")
+subparsers.required = True
+subparsers.dest = "MAIN_COMMAND"
 
 def moleHandler(args):
     mmass = moles.molarMass(args.COMPOUND)
@@ -21,24 +29,6 @@ def moleHandler(args):
         elif args.qto == "items":
             print(f"{fmoles * moles.avogadro:.{args.precision}g} items")
 
-def ptableHandler(args):
-    result = None
-    if not (args.atomic_number is None):
-        result = periodic_table.ptable.getByNumber(args.atomic_number)
-    elif not (args.symbol is None):
-        result = periodic_table.ptable.getBySymbol(args.symbol)
-    else:
-        result = periodic_table.ptable.getByName(args.name.capitalize())
-    if result:
-        print(result.verbose_repr())
-    else:
-        print("No such element found")
-
-parser = argparse.ArgumentParser(description = "A suite of chemistry-related utilities.")
-subparsers = parser.add_subparsers(help="which computation to perform")
-subparsers.required = True
-subparsers.dest = "MAIN_COMMAND"
-
 mole_parser = subparsers.add_parser("mole", description = """Utilities related to molar conversions.
 
     Given the --conv option, performs the specified conversion.
@@ -46,7 +36,7 @@ mole_parser = subparsers.add_parser("mole", description = """Utilities related t
     [FROM] and [TO] are one of {grams, moles, items}. {g, m, i} are acceptable shorthands.
 
     Without the --conv option, returns the molar mass of the compound.""", \
-    formatter_class = argparse.RawTextHelpFormatter)
+    formatter_class = argparse.RawTextHelpFormatter, parents=[_precision_parser])
 
 class MoleConvValidator(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
@@ -69,19 +59,54 @@ class MoleConvValidator(argparse.Action):
 mole_parser.add_argument("-c", "--conv", nargs=3, action=MoleConvValidator, \
                          help="Converts a given quantity.")
 mole_parser.add_argument("COMPOUND", type=str, help="The compound to convert.")
-mole_parser.add_argument("-p", "--precision", type=int, help="Significant figures in the output.", default=20)
-mole_parser.set_defaults(func=moleHandler);
+mole_parser.set_defaults(func=moleHandler)
+
+def ptableHandler(args):
+    result = None
+    if not (args.atomic_number is None):
+        result = periodic_table.ptable.getByNumber(args.atomic_number)
+    elif not (args.symbol is None):
+        result = periodic_table.ptable.getBySymbol(args.symbol)
+    else:
+        result = periodic_table.ptable.getByName(args.name.capitalize())
+    if result:
+        print(result.verbose_repr())
+    else:
+        print("No such element found")
 
 ptable_parser = subparsers.add_parser("ptable", description = """Utility for periodic table-based lookups.
 
 Given the -a option, finds an element with that atomic number.
 Given the -s option, finds an element with that symbol.
-Given the -n option, it finds that element.""")
+Given the -n option, it finds that element.""", \
+    formatter_class = argparse.RawTextHelpFormatter)
+
 ptable_group = ptable_parser.add_mutually_exclusive_group(required = True)
 ptable_group.add_argument("-a", "--atomic-number", type=int, help="Atomic number requested.")
 ptable_group.add_argument("-s", "--symbol", type=str, help="Atomic number requested.")
 ptable_group.add_argument("-n", "--name", type=str, help="Name of element requested.")
 ptable_parser.set_defaults(func=ptableHandler)
+
+def compdHandler(args):
+    cpd = compound.Compound(args.COMPOUND)
+    if args.COMMAND == "molec":
+        print(cpd.getMolecular())
+    elif args.COMMAND == "empi":
+        print(cpd.getEmpirical())
+    else:
+        elements = cpd.getElemDistribution()
+        totalMass = moles.molarMass(cpd)
+        for elem, ct in elements.items():
+            elemMass = periodic_table.ptable.getBySymbol(elem).molarMass
+            print(f"{elemMass * ct * 100 / totalMass:.{args.precision}g}% {elem}")
+compd_parser = subparsers.add_parser("compd", description="""Utilities for compound properties.
+
+The -p option is ignored if the output is not numeric.
+""", parents=[_precision_parser])
+
+compd_parser.add_argument("COMMAND", type=str, help="The action to perform", choices=["pcbm", "molec", "empi"])
+compd_parser.add_argument("COMPOUND", type=str, help="The compound to operate on.")
+compd_parser.set_defaults(func=compdHandler)
 
 args = parser.parse_args()
 args.func(args)

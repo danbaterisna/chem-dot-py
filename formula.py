@@ -17,26 +17,15 @@ class FormulaComponent:
         self.comps = comps
         self.count = count
     def __str__(self):
-        return f"({self.comps}){self.count}"
+        if isinstance(self.comps, str):
+            return f"{self.comps}{self.count if self.count > 1 else ''}"
+        parts = ''.join(str(comp) for comp in self.comps)
+        if self.count == 1:
+            return parts
+        else:
+            return f"({parts}){self.count}"
     def __repr__(self):
         return self.__str__()
-    def getElemDistribution(self):
-        """Returns a dict representing the molecular formula."""
-        if isinstance(self.comps, str):
-            # this is a root
-            return {self.comps: self.count}
-        else:
-            # yeet
-            result = dict()
-            for subForm in self.comps:
-                for k, v in subForm.getElemDistribution().items():
-                    if k not in result.keys():
-                        result[k] = 0
-                    result[k] += v
-            afterMult = dict()
-            for k, v in result.items():
-                afterMult[k] = v * self.count
-            return afterMult
 
 class Formula:
     # sets for parsing

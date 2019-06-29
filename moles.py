@@ -1,5 +1,5 @@
 import os
-import periodic_table, formula
+import periodic_table, compound
 
 avogadro = 6.02214076e23
 
@@ -10,8 +10,7 @@ massByElement = dict((atom.symbol, atom.molarMass) for atom in periodic_table.pt
 
 def molarMass(comps):
     if isinstance(comps, str):
-        compound = formula.Formula(comps.rstrip())
-        comps = formula.FormulaComponent(compound.parseFormula(), 1)
+        comps = compound.Compound(comps)
     distrib = comps.getElemDistribution()
     ans = 0
     for elem, v in distrib.items():
