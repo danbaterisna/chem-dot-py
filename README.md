@@ -6,7 +6,7 @@ chem.py is a set of tools that help make high school chemistry calculations less
 
 Go to the green **Clone or download** button, click it, then click _Download ZIP_. Then, unpack the .zip, including _all_ files, to some folder.
 
-As always, there's the Cool Kid option of cloning this git repo.
+As always, there's the Cool Kid option of cloning this git repo. That is preferable, since you can update simply by `pulling` this repo.
 
 ## Usage
 
