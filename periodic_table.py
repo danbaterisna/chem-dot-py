@@ -16,9 +16,10 @@ class Atom:
     def __repr__(self):
         return f"{self.symbol}"
     def verbose_repr(self):
-        return f"""{self.fullName} ({self.symbol})
-no. {self.atNumber}
-{self.molarMass} g/mol
+        return f"""
+    {self.fullName} ({self.symbol})
+    no. {self.atNumber}
+    {self.molarMass} g/mol
        """
 
 class PeriodicTable:

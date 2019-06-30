@@ -1,8 +1,8 @@
-import argparse, collections
+import argparse, collections, sys, os
 import moles, periodic_table, compound
 
 _precision_parser = argparse.ArgumentParser(add_help = False)
-_precision_parser.add_argument("-p", "--precision", type=int, default=6, help="Number of significant figures of the answer.")
+_precision_parser.add_argument("-p", "--precision", type=int, default=10, help="Number of significant figures of the answer.")
 
 parser = argparse.ArgumentParser(description = "A suite of chemistry-related utilities.")
 subparsers = parser.add_subparsers(help="which computation to perform")
@@ -108,7 +108,34 @@ compd_parser.add_argument("COMMAND", type=str, help="The action to perform", cho
 compd_parser.add_argument("COMPOUND", type=str, help="The compound to operate on.")
 compd_parser.set_defaults(func=compdHandler)
 
+def interactHandler(args):
+    while True:
+        command = input("chem.py$ ")
+        sub_args = parser.parse_args(command.split())
+        sub_args.func(sub_args)
+        # i somehow want to dodge the exit syscall
+        # the above code makes.
+        # this is my best current guess, although
+        # you can do shell injection with this.
+        # os.system("python3 chem.py " + command)
+
+interact_parser = subparsers.add_parser("interact", description="""Enter interactive mode.
+
+In interactive mode, one can directly enter commands without `python chem.py`.
+However, only those commands will be available.
+
+Note that if an invalid command is entered, or if any  -h option
+is invoked, then chem.py will exit.""", \
+    formatter_class = argparse.RawTextHelpFormatter)
+
+interact_parser.set_defaults(func=interactHandler)
+
+def iexitHandler(args):
+    sys.exit(0)
+
+iexit_parser = subparsers.add_parser("iexit", description="Exits interactive mode.")
+iexit_parser.set_defaults(func=iexitHandler)
+
 args = parser.parse_args()
 args.func(args)
-
 
