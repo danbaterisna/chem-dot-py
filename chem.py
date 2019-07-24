@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+
 import argparse, collections, sys, os
-import moles, periodic_table, compound
+import moles, periodic_table, compound, shape
 
 _precision_parser = argparse.ArgumentParser(add_help = False)
 _precision_parser.add_argument("-p", "--precision", type=int, default=10, help="Number of significant figures of the answer.")
@@ -78,7 +80,10 @@ ptable_parser = subparsers.add_parser("ptable", description = """Utility for per
 
 Given the -a option, finds an element with that atomic number.
 Given the -s option, finds an element with that symbol.
-Given the -n option, it finds that element.""", \
+Given the -n option, it finds that element.
+
+WARNING: The electron configuration shown does not take into account
+exceptions for transition metals.""", \
     formatter_class = argparse.RawTextHelpFormatter)
 
 ptable_group = ptable_parser.add_mutually_exclusive_group(required = True)
@@ -135,6 +140,15 @@ def iexitHandler(args):
 
 iexit_parser = subparsers.add_parser("iexit", description="Exits interactive mode.")
 iexit_parser.set_defaults(func=iexitHandler)
+
+def shapevHandler(args):
+    print(shape.getVSEPRDescription(args.surround, args.lone_pair))
+
+shapev_parser = subparsers.add_parser("shapev", description="""
+Predict molecular shape using VSEPR theory.""")
+shapev_parser.add_argument("surround", type=int, help="Number of atoms surrounding the central atom.")
+shapev_parser.add_argument("lone_pair", type=int, help="Number of lone pairs on the central atom.")
+shapev_parser.set_defaults(func=shapevHandler)
 
 args = parser.parse_args()
 args.func(args)

@@ -1,3 +1,6 @@
+import itertools
+import os
+
 """
 Module responsible for loading data on elements.
 """
@@ -15,11 +18,38 @@ class Atom:
         self.molarMass = float(mm)
     def __repr__(self):
         return f"{self.symbol}"
+    def getElectronConfig(self, long=True):
+        orbitals = "spdf"
+        bannedPairs = ["1p", "1d", "1f", "2d", "2f", "3f"]
+        electronCount = [2, 6, 10, 14]
+        remainingElectrons = self.atNumber
+        ePerOrbital = []
+        subshellNames = []
+        for i in itertools.count(0):
+            if remainingElectrons == 0:
+                break
+            for orbitIndex in range(len(orbitals) - 1, -1, -1):
+                shellNum = i - orbitIndex + 1
+                if shellNum <= 0 or str(shellNum) + orbitals[orbitIndex] in bannedPairs:
+                    continue
+                subshellNames.append(str(shellNum) + orbitals[orbitIndex])
+                ePerOrbital.append(min(remainingElectrons, electronCount[orbitIndex]))
+                remainingElectrons -= ePerOrbital[-1]
+                if remainingElectrons == 0:
+                    break
+        if long:
+            return list(map(lambda x: x[1] + str(x[0]), zip(ePerOrbital, subshellNames)))
+        else:
+            breakOrbitals = []
+
+
     def verbose_repr(self):
         return f"""
     {self.fullName} ({self.symbol})
     no. {self.atNumber}
     {self.molarMass} g/mol
+    Long configuration:
+        {'.'.join(self.getElectronConfig())}
        """
 
 class PeriodicTable:
@@ -51,5 +81,7 @@ class PeriodicTable:
                 return atom
         return None
 
-ptable = PeriodicTable.fromFile("ptable_data.txt")
+scriptDir = os.path.dirname(__file__)
+
+ptable = PeriodicTable.fromFile(os.path.join(scriptDir, "ptable_data.txt"))
 
