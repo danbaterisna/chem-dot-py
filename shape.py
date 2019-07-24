@@ -15,8 +15,11 @@ bondAngles = [
 ]
 
 def getVSEPRDescription(surrounding, lonePair):
-    return f"""
+    try:
+        return f"""
 Electron geometry: {descriptions[surrounding+lonePair - 2][0]}
 Molecular geometry: {descriptions[surrounding+lonePair - 2][lonePair]}
 Bond angle: {bondAngles[surrounding + lonePair - 2][lonePair]}
 """
+    except IndexError:
+        return "Invalid formula set"
