@@ -12,11 +12,10 @@ class Compound(formula.FormulaComponent):
             cplist = formula.FormulaComponent(cplist, 1)
         if isinstance(cplist.comps, list):
             self.comps = [Compound(fc) for fc in cplist.comps]
-            self.count = 1
+            self.count = cplist.count
         else:
             self.comps = cplist.comps
             self.count = cplist.count
-
     def getElemDistribution(self):
         """Returns a dict representing the molecular formula."""
         if isinstance(self.comps, str):
